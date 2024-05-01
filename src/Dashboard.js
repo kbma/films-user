@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import OpenStreetMap from './OpenStreetMap';
 
 function Dashboard({ username, userId }) {
   const [moviesData, setMoviesData] = useState([]);
@@ -7,6 +8,8 @@ function Dashboard({ username, userId }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [activeMenu, setActiveMenu] = useState('all');
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
 
   const fetchSubscription = async (userId, movieId) => {
     try {
@@ -123,10 +126,30 @@ function Dashboard({ username, userId }) {
 
   useEffect(() => {
     fetchMovies();
+
+
   }, [currentPage]);
 
   useEffect(() => {
     fetchSubscriptions();
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLatitude(position.coords.latitude);
+          setLongitude(position.coords.longitude);
+        },
+        (error) => {
+          console.error('Error getting geolocation:', error);
+        }
+      );
+    } else {
+      console.error('Geolocation is not supported by this browser.');
+    }
+
+
+
+
   }, [moviesData, userId]);
 
   const goToPage = (page) => {
@@ -145,6 +168,11 @@ function Dashboard({ username, userId }) {
     <div className="container mx-auto p-4 mt-4 h-screen">
       <header className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-semibold">Bienvenue <strong>{username} </strong></h1>
+
+        <OpenStreetMap />
+
+      
+      
         <img src="https://filmoflix.to/templates/filmoflix-cc/images/logo-filmoflix.png" alt="Logo" className="h-10 w-auto" />
       </header>
 
