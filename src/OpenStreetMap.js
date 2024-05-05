@@ -1,40 +1,46 @@
+// OpenStreetMap.js
+
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
-function OpenStreetMap() {
+function OpenStreetMap({ setCountry }) {
   const [position, setPosition] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Utilisation de l'API de géolocalisation du navigateur pour obtenir la position actuelle
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
         setPosition([latitude, longitude]);
+        
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+          .then(response => response.json())
+          .then(data => {
+            setCountry(data.address.country); // Passer la valeur de country au parent
+          });
       },
       (err) => {
         setError(err.message);
       }
     );
-  }, []); // Le tableau vide [] signifie que useEffect ne s'exécute qu'une seule fois après le premier rendu
+  }, [setCountry]);
 
   if (error) {
     return <div>Error: {error}</div>;
   }
 
   return (
-    <div style={{ height: '100px', width: '90%' }}>
+    <div style={{ height: '100px', width: '100%' }}>
       {position && (
-        <MapContainer center={position} zoom={13} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
+        <MapContainer center={position} zoom={13} scrollWheelZoom={false} style={{ height: '100%', width: '80%' }}>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          {/* Utilisation de CircleMarker pour afficher un marqueur sous forme de cercle */}
           <CircleMarker center={position} radius={8} color="red" fillOpacity={0.5}>
             <Popup>
-              Your current location. <br /> Latitude: {position[0]}, Longitude: {position[1]}
+              Your current location. <br /> Latitude: {position[0]}, Longitude: {position[1]} <br /> 
             </Popup>
           </CircleMarker>
         </MapContainer>
